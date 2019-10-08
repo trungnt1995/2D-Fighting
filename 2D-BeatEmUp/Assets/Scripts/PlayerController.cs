@@ -18,7 +18,7 @@ public class PlayerController : MonoBehaviour
 
     public Animator myAnim;
     //public SpriteRenderer spriteRenderer;
-    public GameObject boxColliderStand;
+    // public GameObject boxColliderStand;
     private float axisX, axisY;
     
     public float prevPosY;
@@ -55,11 +55,20 @@ public class PlayerController : MonoBehaviour
 
     /// Update is called every frame, if the MonoBehaviour is enabled.
 
+    
+    void Update()
+    {
+        JumpPhysics();         
+    }
 
     void FixedUpdate()
     {   
-        if(!MovementStates.Contains(playerState.currentState) || isDead) return;
-        isAttack = gameObject.GetComponent<Attack>().isAtacking;
+        if(!MovementStates.Contains(playerState.currentState) || isDead) 
+        {
+            theRB.velocity = Vector3.zero;
+            return;
+        }
+        
         MoveOnGround();
         if(Input.GetKeyDown(KeyCode.Space) && isGround)
         {   
@@ -67,9 +76,7 @@ public class PlayerController : MonoBehaviour
         }
         onRun();
         Jumping();
-        JumpPhysics(); 
         GetDirection();
-
     }
 
     public void Jump()
@@ -96,13 +103,13 @@ public class PlayerController : MonoBehaviour
     public void JumpPhysics()
     {
         currentPosY = gameObject.transform.position.y;
-        if(jumpTimeCount > 0)
+        if(jumpTimeCount > 0 && playerState.currentState != UNITSTATE.LAND)
         {   
             playerState.SetState(UNITSTATE.JUMPING);
             theRB.gravityScale = 5;
             isGround = false;
             myAnim.SetBool("Jump", true);
-            boxColliderStand.GetComponent<BoxCollider2D>().isTrigger = true;
+            // boxColliderStand.GetComponent<BoxCollider2D>().isTrigger = true;
         }else if(!isGround && prevPosY >= currentPosY)
         {   
             HasLand();      
@@ -116,7 +123,6 @@ public class PlayerController : MonoBehaviour
         axisY = Input.GetAxis("Vertical");
         if(isGround)
         {   
-            if(!isAttack){
                 theRB.velocity = new Vector2(axisX, axisY * .5f) * CurrentSpeed;
                 if(axisX != 0 || axisY != 0 )
                 {   
@@ -148,19 +154,16 @@ public class PlayerController : MonoBehaviour
                     myAnim.SetBool("Walk", false);
                     myAnim.SetBool("Run", false);   
                 }
-            } else
-            {
-                theRB.velocity = new Vector2(0 , 0);
-            }
         } 
     }
 
     public void HasLand()
     {
-        playerState.SetState(UNITSTATE.LAND);            
         theRB.gravityScale = 0;
+        playerState.SetState(UNITSTATE.LAND);            
         isGround = true;
-        boxColliderStand.GetComponent<BoxCollider2D>().isTrigger = false;
+        transform.position = new Vector3 (transform.position.x , prevPosY, transform.position.z);
+        // boxColliderStand.GetComponent<BoxCollider2D>().isTrigger = false;
         myAnim.SetBool("Jump", false);  
     }
 
@@ -193,6 +196,11 @@ public class PlayerController : MonoBehaviour
                 ButtonCooler = 0.5f;
                 ButtonCount += 1;
             }
+            else
+            {
+                ButtonCooler = 0.5f;
+                ButtonCount = 1; 
+            }
         }
 
         if(Input.GetKeyDown(KeyCode.LeftArrow))
@@ -204,6 +212,11 @@ public class PlayerController : MonoBehaviour
             {
                 ButtonCooler = 0.5f;
                 ButtonCount += 1;
+            }
+            else
+            {
+                ButtonCooler = 0.5f;
+                ButtonCount = 1; 
             }
         }
 

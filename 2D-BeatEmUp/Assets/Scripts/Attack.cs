@@ -12,19 +12,34 @@ public class Attack : MonoBehaviour
     public float startComboCooldown;
     public float startComboCooldownCount;
     public bool canAttack;
-    public bool isAtacking;
     public Animator myAnim;
+    private UnitState playerState;
+    private bool isDead = false;
+    public Rigidbody2D rigidbody2D;
+
+    public bool testing;
+
+    private List<UNITSTATE> AttackStates = new List<UNITSTATE> {
+		UNITSTATE.IDLE, 
+		UNITSTATE.WALK, 
+		UNITSTATE.RUN, 
+		UNITSTATE.JUMPING,
+		UNITSTATE.ATTACK,        
+		UNITSTATE.DEFEND,
+	};
 
     // Start is called before the first frame update
     void Start()
     {
         myAnim = GetComponent<Animator>();
+        playerState = GetComponent<UnitState>();
+        rigidbody2D = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
     void Update()
     {   
-
+        if(!AttackStates.Contains(playerState.currentState) || isDead) return;
         if(startComboCooldownCount > 0)
         {
             startComboCooldownCount -= Time.deltaTime;
@@ -42,37 +57,39 @@ public class Attack : MonoBehaviour
             EndCombo();                
         }
 
-        if(Input.GetKeyDown(KeyCode.R) && canAttack)
+        if(Input.GetKeyDown(KeyCode.R) && canAttack && !testing)
         {   if(comboPerforming == 0 && comboCountinueTime <= 0){
                 selectedCombo = punchCombos;
                 StartCombo();
             }
             else
             {
-                comboPerforming++;
-                if(comboPerforming < selectedCombo.Length)
+                if(selectedCombo[comboPerforming].hit && comboPerforming < selectedCombo.Length - 1)
                 {
-                
-                selectedCombo[comboPerforming].Perform();
-                selectedCombo[comboPerforming - 1].Intercrupt();
-                myAnim.SetBool(selectedCombo[comboPerforming].animationName, true);
-                comboCountinueTime = selectedCombo[comboPerforming].duration;
+                    comboPerforming++;
+                    selectedCombo[comboPerforming].Perform();
+                    selectedCombo[comboPerforming - 1].Intercrupt();
+                    myAnim.SetBool(selectedCombo[comboPerforming].animationName, true);
+                    comboCountinueTime = selectedCombo[comboPerforming].duration;
+                    
                 }
+                    
             }
         }
     }
 
     public void StartCombo()
-    {   isAtacking = true;
+    {   
+        playerState.SetState(UNITSTATE.ATTACK);
         selectedCombo[0].Perform();
         myAnim.SetBool(selectedCombo[0].animationName, true);
         comboCountinueTime = selectedCombo[0].duration;
     }
 
     public void EndCombo()
-    {
+    {   
+        playerState.SetState(UNITSTATE.IDLE);
         canAttack = false;
-        isAtacking = false;
         comboPerforming = 0;
         startComboCooldownCount = startComboCooldown;
         for(int i = 0; i < selectedCombo.Length ; i++){
@@ -80,4 +97,12 @@ public class Attack : MonoBehaviour
         }
         selectedCombo = null;
     }
+
+    public void HitByEnemies(Move MoveHitted)
+    {
+        playerState.SetState(UNITSTATE.HIT);
+        gameObject.GetComponent<CharacterStats>().Hit(MoveHitted.power);
+        myAnim.SetTrigger("Hit-1");
+    }
+
 }

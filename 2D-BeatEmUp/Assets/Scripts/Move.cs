@@ -8,9 +8,13 @@ public class Move : MonoBehaviour
     public float duration;
     public float durationCount = 0;
     public string animationName;
+    public int power; 
+
+    public bool hit = false;
     // Start is called before the first frame update
     void Start()
     {
+        hitBox = gameObject.GetComponent<BoxCollider2D>();
     }
 
     // Update is called once per frame
@@ -20,23 +24,48 @@ public class Move : MonoBehaviour
         if(durationCount > 0)
         {
             durationCount -= Time.deltaTime;
+            if(durationCount < duration * .8)
+            {
+                hitBox.enabled = true;
+            }
         }else
         {
-            gameObject.SetActive(false);
+            hitBox.enabled = false;
+            hit = false;
         }
-
-      
     }
 
     public void Perform()
     {   
         durationCount = duration;
-        gameObject.SetActive(true);
+        
     }
 
     public void Intercrupt()
     {
         durationCount = 0;
-        gameObject.SetActive(false);
+        hitBox.enabled = false;
     }
+
+    private void OnTriggerEnter2D(Collider2D other) {
+        if(other.tag == "Player")
+        {
+            hit = true;
+            other.SendMessageUpwards("HitByEnemies", this);
+        }
+    }
+
+    // private void OnTriggerStay(Collider other) {
+    //     if(other.tag == "Player")
+    //     {
+    //         hit = true;
+    //     }
+    // }
+
+    // private void OnTriggerExit2D(Collider2D other) {
+    //     if(other.tag == "Player")
+    //     {
+    //         hit = false;
+    //     }
+    // }
 }
