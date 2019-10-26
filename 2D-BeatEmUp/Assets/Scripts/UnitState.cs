@@ -1,0 +1,30 @@
+﻿using UnityEngine;
+
+public class UnitState : MonoBehaviour {
+
+	public UNITSTATE currentState = UNITSTATE.IDLE;
+
+	public void SetState(UNITSTATE state){
+		currentState = state;
+	}
+}
+
+public enum UNITSTATE {
+	IDLE,
+	WALK,
+	RUN,
+	JUMPING,
+	LAND,
+	JUMPKICK,
+	ATTACK,
+	DEFEND,
+	HIT,
+	DEATH,
+	THROW,
+	PICKUPITEM,
+	KNOCKDOWN,
+	KNOCKDOWNGROUNDED,
+	GROUNDHIT,
+	STANDUP,
+	USEWEAPON,
+};
